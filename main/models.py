@@ -10,9 +10,9 @@ def validate_uzb_phone(value):
     if not re.match(UZB_PHONE_REGEX, value):
         raise ValidationError("Noto‘g‘ri telefon raqam formati! (+998 XX XXX XX XX)")
 
+INDIVIDUAL = 'individual'
+LEGAL_ENTITY = 'legal_entity'
 class Sponsor(BaseModel):
-    INDIVIDUAL = 'individual'
-    LEGAL_ENTITY = 'legal_entity'
 
     PAYMENT_TYPE_CHOICES = [
         (INDIVIDUAL, 'Jismoniy shaxs'),

@@ -12,16 +12,17 @@ schema_view = get_schema_view(
         default_version='v1',
         description="Metsenat Project",
         terms_of_service="demo.com",
-        contact=openapi.Contact(email='xurramovotabek568@gmail.com'),
+        contact=openapi.Contact(email='welicodevpro@gmail.com'),
         license=openapi.License(name="demo license"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny ,]
+    permission_classes=[permissions.AllowAny,]
 )
 
 urlpatterns = [
     path('admin/panel/', admin.site.urls),
     path('api/users/', include('users.urls')),
+    path('api/dashboard/', include('dashboard.urls')),
     path('api/v1/', include('main.urls')),
     # swagger
     path('swagger/' , schema_view.with_ui(
