@@ -12,7 +12,7 @@ from shared.custom_paga import CustomPagination
 # Sponsor Views
 
 class SponsorListAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,]
 
     def get(self, request):
         search = self.request.query_params.get('search', '')
@@ -30,7 +30,7 @@ class SponsorListAPIView(APIView):
 
 
 class SponsorDetailUpdateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,]
 
     @staticmethod
     def get_sponsor(id):
@@ -68,7 +68,7 @@ class SponsorDetailUpdateAPIView(APIView):
 # Student Views
 
 class StudentListCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,]
 
     def get(self, request):
         search = self.request.query_params.get('search', '')

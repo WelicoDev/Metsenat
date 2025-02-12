@@ -12,7 +12,10 @@ def validate_uzb_phone(value):
 
 INDIVIDUAL = 'individual'
 LEGAL_ENTITY = 'legal_entity'
+
 class Sponsor(BaseModel):
+    INDIVIDUAL = 'individual'
+    LEGAL_ENTITY = 'legal_entity'
 
     PAYMENT_TYPE_CHOICES = [
         (INDIVIDUAL, 'Jismoniy shaxs'),
@@ -61,6 +64,7 @@ class Sponsor(BaseModel):
     payment_method = models.CharField(
         max_length=32,
         choices=PAYMENT_METHOD_CHOICES,
+        default=CARD,
         verbose_name="To‘lov turi"
     )
     company_name = models.CharField(
