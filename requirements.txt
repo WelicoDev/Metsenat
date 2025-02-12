@@ -5,6 +5,7 @@ djangorestframework_simplejwt==5.4.0
 drf-yasg==1.21.8
 inflection==0.5.1
 packaging==24.2
+psycopg2==2.9.10
 PyJWT==2.10.1
 python-decouple==3.8
 pytz==2025.1

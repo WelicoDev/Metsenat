@@ -25,30 +25,24 @@ class SponsorSerializer(serializers.ModelSerializer):
 
     def get_money_spent(self, obj):
         result = AllocatedAmount.objects.filter(sponsor_id=obj).aggregate(total=Sum('money'))
-        return result['total'] or 0
+        return result.get('total', 0)
 
     def validate(self, attrs):
-        instance = getattr(self, 'instance', None)  # when updating a sponsor, it attaches instance to it.
+        instance = getattr(self, 'instance', None)
         company_name = attrs.get('company_name')
         payment_type = attrs.get('payment_type')
 
         if payment_type == LEGAL_ENTITY and not company_name:
             raise ValidationError(
-                {
-                    'success': False,
-                    'message': 'Company name is required for legal entities.'
-                }
+                {'success': False, 'message': 'Company name is required for legal entities.'}
             )
 
         if instance and instance.payment_type == LEGAL_ENTITY and payment_type == INDIVIDUAL:
-            attrs['company_name'] = None  # Clear company name field when changing from legal entity to individual
+            attrs['company_name'] = None
 
         if payment_type == INDIVIDUAL and company_name:
             raise ValidationError(
-                {
-                    'success': False,
-                    'message': 'Individuals should not have company name.'
-                }
+                {'success': False, 'message': 'Individuals should not have company name.'}
             )
 
         return attrs
@@ -71,7 +65,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
     def get_covered_contract_amount(self, obj):
         result = AllocatedAmount.objects.filter(student_id=obj).aggregate(total=Sum('money'))
-        return result['total'] or 0
+        return result.get('total', 0)
 
 
 class AllocatedAmountSerializer(serializers.ModelSerializer):
@@ -89,22 +83,14 @@ class AllocatedAmountSerializer(serializers.ModelSerializer):
         sponsor_id = attrs.get('sponsor_id')
         student_id = attrs.get('student_id')
 
-        if sponsor_id:
-            if not Sponsor.objects.filter(id=sponsor_id).exists():
-                raise ValidationError(
-                    {
-                        'success': False,
-                        'message': 'Sponsor with this ID does not exist.'
-                    }
-                )
+        if sponsor_id and not Sponsor.objects.filter(id=sponsor_id).exists():
+            raise ValidationError(
+                {'success': False, 'message': f'Sponsor with ID {sponsor_id} does not exist.'}
+            )
 
-        if student_id:
-            if not Student.objects.filter(id=student_id).exists():
-                raise ValidationError(
-                    {
-                        'success': False,
-                        'message': 'Student with this ID does not exist.'
-                    }
-                )
+        if student_id and not Student.objects.filter(id=student_id).exists():
+            raise ValidationError(
+                {'success': False, 'message': f'Student with ID {student_id} does not exist.'}
+            )
 
         return attrs

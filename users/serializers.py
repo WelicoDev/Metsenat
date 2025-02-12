@@ -1,43 +1,55 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate
 
 User = get_user_model()
 
-# Ro'yxatdan o'tish
+
+# Ro'yxatdan o'tish (oddiy yoki superuser)
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    is_superuser = serializers.BooleanField(write_only=True, default=False)  # Superuser tanlash imkoniyati
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'first_name', 'last_name')
+        fields = ('username', 'email', 'password', 'first_name', 'last_name', 'is_superuser')
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Ushbu foydalanuvchi nomi mavjud.")
+            raise serializers.ValidationError("Ushbu foydalanuvchi nomi allaqachon mavjud.")
         return value
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Ushbu email mavjud.")
+            raise serializers.ValidationError("Ushbu email allaqachon ishlatilgan.")
         return value
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        is_superuser = validated_data.pop('is_superuser', False)  # Superuser bo‘lishi tekshiriladi
+        password = validated_data.pop('password')  # Parolni ajratib olish
+
+        if is_superuser:
+            user = User.objects.create_superuser(**validated_data)  # Superuser yaratish
+        else:
+            user = User.objects.create_user(**validated_data)  # Oddiy user yaratish
+
+        user.set_password(password)  # Parolni xavfsiz saqlash
+        user.save()
         return user
 
 
-# Login
+# Login qilish
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(username=data['username'], password=data['password'])
+        user = authenticate(username=data.get('username'), password=data.get('password'))
         if user is None:
             raise serializers.ValidationError("Foydalanuvchi nomi yoki parol noto'g'ri.")
+        if not user.is_active:
+            raise serializers.ValidationError("Foydalanuvchi bloklangan.")
+        data['user'] = user  # Authtoken yoki JWT uchun
         return data
 
 
@@ -52,12 +64,18 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Eski parol noto'g'ri.")
         return value
 
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user
+
 
 # Profilni ko'rish
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'is_superuser')
 
 
 # Profilni tahrirlash
@@ -69,6 +87,7 @@ class ProfileEditSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'email')
 
     def validate_email(self, value):
-        if User.objects.exclude(id=self.instance.id).filter(email=value).exists():
+        user_id = self.instance.id if self.instance else None
+        if User.objects.exclude(id=user_id).filter(email=value).exists():
             raise serializers.ValidationError("Ushbu email allaqachon ishlatilgan.")
         return value

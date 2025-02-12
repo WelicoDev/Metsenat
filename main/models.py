@@ -100,7 +100,7 @@ class Student(BaseModel):
     ]
 
     full_name = models.CharField(max_length=255, verbose_name="F.I.Sh.")
-    phone_number = models.CharField(max_length=20, verbose_name="Telefon raqam", validators=[validate_uzb_phone])
+    phone_number = models.CharField(max_length=20, verbose_name="Telefon raqam", validators=[validate_uzb_phone], unique=True)
     degree_type = models.CharField(max_length=10, choices=DEGREE_CHOICES, verbose_name="Talabalik turi")
     university = models.ForeignKey(University, on_delete=models.CASCADE, verbose_name="OTM")
     contract_amount = models.PositiveIntegerField(verbose_name="Kontrakt miqdori", default=0)
@@ -113,7 +113,7 @@ class Student(BaseModel):
 class AllocatedAmount(BaseModel):
     sponsor_id = models.ForeignKey(Sponsor, on_delete=models.CASCADE)
     student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
-    money = models.BigIntegerField()
+    money = models.BigIntegerField(default=0)
 
     def __str__(self):
-        return self.money
+        return str(self.money)

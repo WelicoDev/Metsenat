@@ -23,7 +23,7 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Login
+# Login qilish
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -31,7 +31,7 @@ class LoginView(APIView):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
             user = authenticate(username=username, password=password)
-            if user is not None:
+            if user is not None and user.is_active:
                 refresh = RefreshToken.for_user(user)
                 return Response({
                     'refresh': str(refresh),
@@ -43,7 +43,7 @@ class LoginView(APIView):
 
 # Parolni o'zgartirish
 class ChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
@@ -57,7 +57,7 @@ class ChangePasswordView(APIView):
 
 # Profilni olish
 class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
         serializer = ProfileSerializer(request.user)
@@ -66,7 +66,7 @@ class ProfileView(APIView):
 
 # Profilni tahrirlash
 class ProfileEditView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ]
 
     def put(self, request):
         serializer = ProfileEditSerializer(request.user, data=request.data, partial=True)
@@ -78,7 +78,7 @@ class ProfileEditView(APIView):
 
 # Logout
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
         try:
@@ -87,4 +87,4 @@ class LogoutView(APIView):
             token.blacklist()
             return Response({"detail": "Muvaffaqiyatli chiqish."}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"detail": "Noto'g'ri refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": f"Noto'g'ri refresh token: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
