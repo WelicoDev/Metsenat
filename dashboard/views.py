@@ -8,7 +8,7 @@ from django.db.models import Q
 from .serializers import SponsorSerializer, StudentSerializer, AllocatedAmountSerializer
 from main.models import Sponsor, Student, AllocatedAmount
 from shared.custom_paga import CustomPagination
-
+from drf_yasg.utils import swagger_auto_schema
 # Sponsor Views
 
 class SponsorListAPIView(APIView):
@@ -45,6 +45,7 @@ class SponsorDetailUpdateAPIView(APIView):
         serializer = SponsorSerializer(sponsor, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=SponsorSerializer)
     def put(self, request, id):
         sponsor = self.get_sponsor(id)
         serializer = SponsorSerializer(instance=sponsor, data=request.data)
@@ -52,6 +53,7 @@ class SponsorDetailUpdateAPIView(APIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=SponsorSerializer)
     def patch(self, request, id):
         sponsor = self.get_sponsor(id)
         serializer = SponsorSerializer(instance=sponsor, data=request.data, partial=True)
@@ -88,6 +90,7 @@ class StudentListCreateAPIView(APIView):
         serializer = StudentSerializer(page_obj, many=True)
         return paginator.get_paginated_response(serializer.data)
 
+    @swagger_auto_schema(request_body=StudentSerializer)
     def post(self, request):
         serializer = StudentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -111,6 +114,7 @@ class StudentDetailUpdateDeleteAPIView(APIView):
         serializer = StudentSerializer(instance=student)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=StudentSerializer)
     def put(self, request, id):
         student = self.get_student(id)
         serializer = StudentSerializer(instance=student, data=request.data)
@@ -118,6 +122,7 @@ class StudentDetailUpdateDeleteAPIView(APIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=StudentSerializer)
     def patch(self, request, id):
         student = self.get_student(id)
         serializer = StudentSerializer(instance=student, data=request.data, partial=True)
@@ -150,6 +155,7 @@ class AllocatedAmountListCreateAPIView(APIView):
         serializer = AllocatedAmountSerializer(allocated_amounts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=AllocatedAmountSerializer)
     def post(self, request, student_id):
         student = self.get_student(student_id)
         serializer = AllocatedAmountSerializer(data=request.data)
@@ -174,6 +180,7 @@ class AllocatedAmountDetailUpdateDeleteAPIView(APIView):
         serializer = AllocatedAmountSerializer(instance=allocated_amount)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=AllocatedAmountSerializer)
     def put(self, request, student_id, sponsor_id):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
         serializer = AllocatedAmountSerializer(instance=allocated_amount, data=request.data)
@@ -181,6 +188,7 @@ class AllocatedAmountDetailUpdateDeleteAPIView(APIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=AllocatedAmountSerializer)
     def patch(self, request, student_id, sponsor_id):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
         serializer = AllocatedAmountSerializer(instance=allocated_amount, data=request.data, partial=True)
