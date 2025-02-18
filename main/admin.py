@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Sponsor, Student, AllocatedAmount, University
+from .models import Sponsor, Student, AllocatedAmount
 
 @admin.register(Sponsor)
 class SponsorAdmin(admin.ModelAdmin):
@@ -22,8 +22,3 @@ class AllocatedAmountAdmin(admin.ModelAdmin):
     list_filter = ['sponsor_id', 'student_id']
     ordering = ['-created_at']
 
-@admin.register(University)
-class UniversityAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'created_at', 'updated_at']
-    search_fields = ['name']
-    ordering = ['name']

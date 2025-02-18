@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from main.models import Sponsor, Student, AllocatedAmount, University, LEGAL_ENTITY, INDIVIDUAL
+from main.models import Sponsor, Student, AllocatedAmount, LEGAL_ENTITY, INDIVIDUAL
 from django.db.models import Sum
 
 
@@ -24,8 +24,8 @@ class SponsorSerializer(serializers.ModelSerializer):
         ]
 
     def get_money_spent(self, obj):
-        result = AllocatedAmount.objects.filter(sponsor_id=obj).aggregate(total=Sum('money'))
-        return result.get('total', 0)
+        result = AllocatedAmount.objects.filter(sponsor=obj).aggregate(total=Sum('money'))
+        return result['total'] or 0
 
     def validate(self, attrs):
         instance = getattr(self, 'instance', None)
@@ -33,64 +33,62 @@ class SponsorSerializer(serializers.ModelSerializer):
         payment_type = attrs.get('payment_type')
 
         if payment_type == LEGAL_ENTITY and not company_name:
-            raise ValidationError(
-                {'success': False, 'message': 'Company name is required for legal entities.'}
-            )
+            raise ValidationError({'success': False, 'message': 'Company name is required for legal entities.'})
 
         if instance and instance.payment_type == LEGAL_ENTITY and payment_type == INDIVIDUAL:
             attrs['company_name'] = None
 
         if payment_type == INDIVIDUAL and company_name:
-            raise ValidationError(
-                {'success': False, 'message': 'Individuals should not have company name.'}
-            )
+            raise ValidationError({'success': False, 'message': 'Individuals should not have company name.'})
 
         return attrs
-
-
-class UniversitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = University
-        fields = ['id', 'name']
 
 
 class StudentSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     covered_contract_amount = serializers.SerializerMethodField()
-    university = UniversitySerializer(read_only=True)
 
     class Meta:
         model = Student
         fields = ['id', 'full_name', 'phone_number', 'degree_type', 'university', 'contract_amount', 'covered_contract_amount']
 
     def get_covered_contract_amount(self, obj):
-        result = AllocatedAmount.objects.filter(student_id=obj).aggregate(total=Sum('money'))
-        return result.get('total', 0)
+        result = AllocatedAmount.objects.filter(student=obj).aggregate(total=Sum('money'))
+        return result['total'] or 0
 
 
 class AllocatedAmountSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
+    sponsor_id = serializers.PrimaryKeyRelatedField(queryset=Sponsor.objects.all(), write_only=True)
+    student_id = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), write_only=True)
     sponsor = SponsorSerializer(read_only=True)
-    sponsor_id = serializers.UUIDField(write_only=True)
     student = StudentSerializer(read_only=True)
-    student_id = serializers.UUIDField(write_only=True)
 
     class Meta:
         model = AllocatedAmount
-        fields = ['id', 'sponsor', 'sponsor_id', 'student', 'student_id', 'money']
+        fields = ['id', 'sponsor', 'student', 'sponsor_id', 'student_id', 'money']
 
     def validate(self, attrs):
-        sponsor_id = attrs.get('sponsor_id')
-        student_id = attrs.get('student_id')
+        sponsor = attrs.get('sponsor_id')
+        student = attrs.get('student_id')
+        money = attrs.get('money')
 
-        if sponsor_id and not Sponsor.objects.filter(id=sponsor_id).exists():
-            raise ValidationError(
-                {'success': False, 'message': f'Sponsor with ID {sponsor_id} does not exist.'}
-            )
+        # Tekshirish: sponsor va student mavjudligini tekshirish
+        if not sponsor:
+            raise ValidationError({'success': False, 'message': 'Sponsor is required.'})
+        if not student:
+            raise ValidationError({'success': False, 'message': 'Student is required.'})
 
-        if student_id and not Student.objects.filter(id=student_id).exists():
-            raise ValidationError(
-                {'success': False, 'message': f'Student with ID {student_id} does not exist.'}
-            )
+        # Tekshirish: money musbat bo'lishi kerak
+        if money <= 0:
+            raise ValidationError({'success': False, 'message': 'Money must be greater than zero.'})
+
+        # Tekshirish: allocated_total miqdori
+        allocated_total = AllocatedAmount.objects.filter(sponsor=sponsor).aggregate(total=Sum('money'))['total'] or 0
+        remaining_balance = sponsor.amount - allocated_total
+
+        # Pul miqdori mablag'ni oshmasligi kerak
+        if money > remaining_balance:
+            raise ValidationError({'success': False, 'message': f'Not enough funds. Remaining: {remaining_balance} UZS'})
 
         return attrs

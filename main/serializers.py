@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Sponsor, University, Student
+from .models import Sponsor
 
 class SponsorSerializer(serializers.ModelSerializer):
     class Meta:

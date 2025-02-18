@@ -136,7 +136,7 @@ class StudentDetailUpdateDeleteAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# AllocatedAmount Views
+
 
 class AllocatedAmountListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -144,10 +144,9 @@ class AllocatedAmountListCreateAPIView(APIView):
     @staticmethod
     def get_student(student_id):
         try:
-            student = Student.objects.get(id=student_id)
+            return Student.objects.get(id=student_id)
         except Student.DoesNotExist:
             raise Http404('Student with this id does not exist.')
-        return student
 
     def get(self, request, student_id):
         student = self.get_student(student_id)
@@ -160,6 +159,7 @@ class AllocatedAmountListCreateAPIView(APIView):
         student = self.get_student(student_id)
         serializer = AllocatedAmountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # Assign the student from the URL to the serializer's data
         serializer.save(student=student)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -170,10 +170,9 @@ class AllocatedAmountDetailUpdateDeleteAPIView(APIView):
     @staticmethod
     def get_allocated_amount(student_id, sponsor_id):
         try:
-            allocated_amount = AllocatedAmount.objects.get(student_id=student_id, sponsor_id=sponsor_id)
+            return AllocatedAmount.objects.get(student_id=student_id, sponsor_id=sponsor_id)
         except AllocatedAmount.DoesNotExist:
             raise Http404("Allocated amount with this student and sponsor id does not exist.")
-        return allocated_amount
 
     def get(self, request, student_id, sponsor_id):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
@@ -185,6 +184,7 @@ class AllocatedAmountDetailUpdateDeleteAPIView(APIView):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
         serializer = AllocatedAmountSerializer(instance=allocated_amount, data=request.data)
         serializer.is_valid(raise_exception=True)
+        # Here you can modify or add custom validation if needed
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -193,10 +193,11 @@ class AllocatedAmountDetailUpdateDeleteAPIView(APIView):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
         serializer = AllocatedAmountSerializer(instance=allocated_amount, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        # Apply changes if needed
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, student_id, sponsor_id):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
         allocated_amount.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Allocated amount deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
