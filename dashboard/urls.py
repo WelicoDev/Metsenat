@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import AllocatedAmountListCreateAPIView, AllocatedAmountDetailUpdateDeleteAPIView, SponsorListAPIView, SponsorDetailUpdateAPIView,\
-    StudentListCreateAPIView, StudentDetailUpdateDeleteAPIView
+    StudentListCreateAPIView, StudentDetailUpdateDeleteAPIView, AllocatedAmountSummaryAPIView
 
 urlpatterns = [
     # Sponsor URLs
@@ -15,4 +15,6 @@ urlpatterns = [
          name='allocated-amount-list-create'),
     path('students/<uuid:student_id>/allocated-amounts/<uuid:sponsor_id>/',
          AllocatedAmountDetailUpdateDeleteAPIView.as_view(), name='allocated-amount-detail-update-delete'),
+
+    path('allocated-amounts/summary/', AllocatedAmountSummaryAPIView.as_view(), name='allocated_amount_summary')
 ]
