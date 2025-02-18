@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime
+from django.db.models import Sum
 from django.db.models import Q
 from .serializers import SponsorSerializer, StudentSerializer, AllocatedAmountSerializer
 from main.models import Sponsor, Student, AllocatedAmount
@@ -148,6 +149,14 @@ class AllocatedAmountListCreateAPIView(APIView):
         except Student.DoesNotExist:
             raise Http404('Student with this id does not exist.')
 
+    @staticmethod
+    def get_sponsor(sponsor_id):
+        try:
+            sponsor = Sponsor.objects.get(id=sponsor_id)
+        except Sponsor.DoesNotExist:
+            raise Http404('Sponsor with this id does not exist.')
+        return sponsor
+
     def get(self, request, student_id):
         student = self.get_student(student_id)
         allocated_amounts = AllocatedAmount.objects.filter(student=student)
@@ -201,3 +210,23 @@ class AllocatedAmountDetailUpdateDeleteAPIView(APIView):
         allocated_amount = self.get_allocated_amount(student_id, sponsor_id)
         allocated_amount.delete()
         return Response({"message": "Allocated amount deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+
+class AllocatedAmountSummaryAPIView(APIView):
+    permission_classes = [IsAuthenticated,]
+
+    def get(self, request):
+        total_allocated_amount = AllocatedAmount.objects.all().aggregate(total=Sum('money'))['total'] or 0
+        total_sponsor_balance = Sponsor.objects.all().aggregate(total_balance=Sum('amount'))['total_balance'] or 0
+        total_students = Student.objects.count()
+
+        remaining_balance = total_sponsor_balance - total_allocated_amount
+
+        return Response(
+            {
+                'total_allocated_amount': total_allocated_amount,
+                'total_sponsor_balance': total_sponsor_balance,
+                'remaining_balance': remaining_balance,
+                'total_students': total_students,
+            }
+        )
