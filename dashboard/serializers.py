@@ -57,38 +57,56 @@ class StudentSerializer(serializers.ModelSerializer):
         return result['total'] or 0
 
 
+
 class AllocatedAmountSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
-    sponsor_id = serializers.PrimaryKeyRelatedField(queryset=Sponsor.objects.all(), write_only=True)
-    student_id = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), write_only=True)
     sponsor = SponsorSerializer(read_only=True)
     student = StudentSerializer(read_only=True)
+    sponsor_id = serializers.UUIDField(write_only=True)
+    student_id = serializers.UUIDField(write_only=True)
 
     class Meta:
         model = AllocatedAmount
         fields = ['id', 'sponsor', 'student', 'sponsor_id', 'student_id', 'money']
 
     def validate(self, attrs):
-        sponsor = attrs.get('sponsor_id')
-        student = attrs.get('student_id')
+        sponsor_id = attrs.get('sponsor_id')
+        student_id = attrs.get('student_id')
         money = attrs.get('money')
 
-        # Tekshirish: sponsor va student mavjudligini tekshirish
-        if not sponsor:
-            raise ValidationError({'success': False, 'message': 'Sponsor is required.'})
-        if not student:
-            raise ValidationError({'success': False, 'message': 'Student is required.'})
+        # Tekshirish: sponsor mavjudligini tekshirish
+        if sponsor_id:
+            if not Sponsor.objects.filter(id=sponsor_id).exists():
+                raise ValidationError({
+                    'success': False,
+                    'message': 'There is no sponsor found with this id.'
+                })
+
+        # Tekshirish: student mavjudligini tekshirish
+        if student_id:
+            if not Student.objects.filter(id=student_id).exists():
+                raise ValidationError({
+                    'success': False,
+                    'message': 'There is no student found with this id.'
+                })
 
         # Tekshirish: money musbat bo'lishi kerak
         if money <= 0:
-            raise ValidationError({'success': False, 'message': 'Money must be greater than zero.'})
+            raise ValidationError({
+                'success': False,
+                'message': 'Money must be greater than zero.'
+            })
 
         # Tekshirish: allocated_total miqdori
-        allocated_total = AllocatedAmount.objects.filter(sponsor=sponsor).aggregate(total=Sum('money'))['total'] or 0
-        remaining_balance = sponsor.amount - allocated_total
+        allocated_total = AllocatedAmount.objects.filter(sponsor_id=sponsor_id).aggregate(total=Sum('money'))[
+                              'total'] or 0
+        remaining_balance = Sponsor.objects.filter(id=sponsor_id).first().amount - allocated_total
 
         # Pul miqdori mablag'ni oshmasligi kerak
         if money > remaining_balance:
-            raise ValidationError({'success': False, 'message': f'Not enough funds. Remaining: {remaining_balance} UZS'})
+            raise ValidationError({
+                'success': False,
+                'message': f'Not enough funds. Remaining: {remaining_balance} UZS'
+            })
 
         return attrs
