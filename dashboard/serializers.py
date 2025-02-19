@@ -109,3 +109,9 @@ class AllocatedAmountSerializer(serializers.ModelSerializer):
             })
 
         return attrs
+
+class AllocatedAmountSummarySerializer(serializers.Serializer):
+    total_allocated_amount = serializers.IntegerField()
+    total_sponsor_balance = serializers.IntegerField()
+    remaining_balance = serializers.IntegerField()
+    total_students = serializers.IntegerField()

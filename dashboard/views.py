@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, L
     get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import SponsorSerializer, StudentSerializer, AllocatedAmountSerializer
+from .serializers import SponsorSerializer, StudentSerializer, AllocatedAmountSerializer, AllocatedAmountSummarySerializer
 from main.models import Sponsor, Student, AllocatedAmount
 from shared.custom_paga import CustomPagination
 
@@ -82,6 +82,7 @@ class AllocatedAmountDetailUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView):
 
 class AllocatedAmountSummaryAPIView(GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = AllocatedAmountSummarySerializer
 
     def get(self, request):
         total_allocated_amount = AllocatedAmount.objects.aggregate(total=Sum('money'))['total'] or 0
@@ -89,11 +90,12 @@ class AllocatedAmountSummaryAPIView(GenericAPIView):
         total_students = Student.objects.count()
         remaining_balance = total_sponsor_balance - total_allocated_amount
 
-        return Response(
-            {
-                'total_allocated_amount': total_allocated_amount,
-                'total_sponsor_balance': total_sponsor_balance,
-                'remaining_balance': remaining_balance,
-                'total_students': total_students,
-            }
-        )
+        data = {
+            'total_allocated_amount': total_allocated_amount,
+            'total_sponsor_balance': total_sponsor_balance,
+            'remaining_balance': remaining_balance,
+            'total_students': total_students,
+        }
+
+        return Response(data)
+
