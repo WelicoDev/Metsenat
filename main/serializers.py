@@ -4,7 +4,7 @@ from .models import Sponsor
 class SponsorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sponsor
-        fields = ['id', 'full_name', 'phone_number', 'payment_type', 'amount', 'payment_method', 'company_name', 'status', 'comment']
+        fields = ['id', 'full_name', 'phone_number', 'payment_type', 'amount', 'payment_method', 'company_name', 'comment']
 
     def validate(self, attrs):
         sponsor_type = attrs.get('payment_type')
