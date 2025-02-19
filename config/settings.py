@@ -1,3 +1,4 @@
+import dj_database_url
 from decouple import config
 from pathlib import Path
 from datetime import timedelta
@@ -96,15 +97,19 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config("DB_NAME"),
+#         'USER':config('DB_USER'),
+#         'PASSWORD':config('PASSWORD'),
+#         'PORT':config('PORT'),
+#         'HOST':config('HOST'),
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config("DB_NAME"),
-        'USER':config('DB_USER'),
-        'PASSWORD':config('PASSWORD'),
-        'PORT':config('PORT'),
-        'HOST':config('HOST'),
-    }
+    "default":dj_database_url.parse(config("DATABASE_URL"))
 }
 
 
