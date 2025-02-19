@@ -17,7 +17,7 @@ class SponsorApplicationAPIView(CreateAPIView):
             self.perform_create(serializer)
             return Response({
                 'success': True,
-                'message': 'Application Successful',
+                'message': 'Application Successfully',
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
 

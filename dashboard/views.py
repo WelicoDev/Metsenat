@@ -90,6 +90,7 @@ class AllocatedAmountSummaryAPIView(GenericAPIView):
         total_students = Student.objects.count()
         remaining_balance = total_sponsor_balance - total_allocated_amount
 
+        # View Statistic
         data = {
             'total_allocated_amount': total_allocated_amount,
             'total_sponsor_balance': total_sponsor_balance,

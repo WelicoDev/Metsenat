@@ -57,7 +57,7 @@ class ChangePasswordView(UpdateAPIView):
             user = request.user
             user.set_password(serializer.validated_data['new_password'])
             user.save()
-            return Response({"detail": "Password successfully updated."})
+            return Response({"detail": "Password successfully updated"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -99,6 +99,6 @@ class LogoutView(GenericAPIView):
             refresh_token = serializer.validated_data['refresh']
             token = RefreshToken(refresh_token)
             token.blacklist()  # Token blocklist
-            return Response({"detail": "Successful logout."}, status=status.HTTP_200_OK)
+            return Response({"detail": "Successful logout"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": f"Invalid refresh token: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)

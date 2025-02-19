@@ -4,12 +4,10 @@ db.sqlite3
 media/
 staticfiles/
 .env
+.idea/
 
 
 venv/
 *.log
 
-.idea/
-.vscode/
-venv/
-.env
+
