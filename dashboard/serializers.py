@@ -22,6 +22,7 @@ class SponsorSerializer(serializers.ModelSerializer):
             'payment_type',
             'comment'
         ]
+        ref_name = "DashboardSponsor"
 
     def get_money_spent(self, obj):
         result = AllocatedAmount.objects.filter(sponsor=obj).aggregate(total=Sum('money'))
@@ -74,7 +75,7 @@ class AllocatedAmountSerializer(serializers.ModelSerializer):
         student_id = attrs.get('student_id')
         money = attrs.get('money')
 
-        # Tekshirish: sponsor mavjudligini tekshirish
+
         if sponsor_id:
             if not Sponsor.objects.filter(id=sponsor_id).exists():
                 raise ValidationError({
@@ -82,7 +83,7 @@ class AllocatedAmountSerializer(serializers.ModelSerializer):
                     'message': 'There is no sponsor found with this id.'
                 })
 
-        # Tekshirish: student mavjudligini tekshirish
+
         if student_id:
             if not Student.objects.filter(id=student_id).exists():
                 raise ValidationError({
@@ -90,19 +91,17 @@ class AllocatedAmountSerializer(serializers.ModelSerializer):
                     'message': 'There is no student found with this id.'
                 })
 
-        # Tekshirish: money musbat bo'lishi kerak
         if money <= 0:
             raise ValidationError({
                 'success': False,
                 'message': 'Money must be greater than zero.'
             })
 
-        # Tekshirish: allocated_total miqdori
+
         allocated_total = AllocatedAmount.objects.filter(sponsor_id=sponsor_id).aggregate(total=Sum('money'))[
                               'total'] or 0
         remaining_balance = Sponsor.objects.filter(id=sponsor_id).first().amount - allocated_total
 
-        # Pul miqdori mablag'ni oshmasligi kerak
         if money > remaining_balance:
             raise ValidationError({
                 'success': False,

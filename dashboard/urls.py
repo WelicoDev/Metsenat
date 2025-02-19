@@ -1,20 +1,12 @@
 from django.urls import path
-from .views import AllocatedAmountListCreateAPIView, AllocatedAmountDetailUpdateDeleteAPIView, SponsorListAPIView, SponsorDetailUpdateAPIView,\
-    StudentListCreateAPIView, StudentDetailUpdateDeleteAPIView, AllocatedAmountSummaryAPIView
+from . import views
 
 urlpatterns = [
-    # Sponsor URLs
-    path('sponsors/', SponsorListAPIView.as_view(), name='sponsor_list'),
-    path('sponsors/<uuid:id>/', SponsorDetailUpdateAPIView.as_view(), name='sponsor_detail_update_delete'),
-
-    # Student URLs
-    path('students/', StudentListCreateAPIView.as_view(), name='student_list_create'),
-    path('students/<uuid:id>/',StudentDetailUpdateDeleteAPIView.as_view(), name='student_detail_update_delete'),
-
-    path('students/<uuid:student_id>/allocated-amounts/', AllocatedAmountListCreateAPIView.as_view(),
-         name='allocated-amount-list-create'),
-    path('students/<uuid:student_id>/allocated-amounts/<uuid:sponsor_id>/',
-         AllocatedAmountDetailUpdateDeleteAPIView.as_view(), name='allocated-amount-detail-update-delete'),
-
-    path('allocated-amounts/summary/', AllocatedAmountSummaryAPIView.as_view(), name='allocated_amount_summary')
+    path('sponsors/', views.SponsorListAPIView.as_view(), name='sponsor-list'),
+    path('sponsors/<int:id>/', views.SponsorDetailUpdateAPIView.as_view(), name='sponsor-detail'),
+    path('students/', views.StudentListCreateAPIView.as_view(), name='student-list-create'),
+    path('students/<int:id>/', views.StudentDetailUpdateDeleteAPIView.as_view(), name='student-detail-update-delete'),
+    path('students/<int:student_id>/allocated-amounts/', views.AllocatedAmountListCreateAPIView.as_view(), name='allocated-amount-list-create'),
+    path('students/<int:student_id>/allocated-amounts/<int:sponsor_id>/', views.AllocatedAmountDetailUpdateDeleteAPIView.as_view(), name='allocated-amount-detail-update-delete'),
+    path('allocated-amount-summary/', views.AllocatedAmountSummaryAPIView.as_view(), name='allocated-amount-summary'),
 ]
