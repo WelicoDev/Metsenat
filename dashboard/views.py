@@ -1,4 +1,5 @@
 from django.db.models import Sum, Q
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView, \
     get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -67,7 +68,19 @@ class AllocatedAmountListCreateAPIView(ListCreateAPIView):
     def perform_create(self, serializer):
         student_id = self.kwargs.get('student_id')
         student = get_object_or_404(Student, id=student_id)
-        serializer.save(student=student)
+
+        sponsor_id = self.request.data.get('sponsor_id')
+        sponsor = get_object_or_404(Sponsor, id=sponsor_id)
+
+
+        if sponsor.payment_status != 'Tasdiqlangan':
+            raise ValidationError("The money sent by the sponsor has not been confirmed. Money cannot be allocated.")
+
+        serializer.save(student=student, sponsor=sponsor)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return response
 
 
 class AllocatedAmountDetailUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView):
